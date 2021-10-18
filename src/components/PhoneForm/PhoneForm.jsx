@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { connect } from "react-redux";
-import { addToContacts } from "redux/phoneBook/phoneBook-actions";
+import { useDispatch } from "react-redux";
+import { fetchAddContactToDb } from "redux/phoneBook/phoneBook-operations";
+import { useSelector } from "react-redux";
+import { getItems } from "redux/phoneBook/phoneBook-selectors";
 import s from "components/PhoneForm/PhoneForm.module.css";
-import { v4 as uuidv4 } from "uuid";
 
-function PhoneForm({ addContact }) {
+function PhoneForm() {
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
+  const state = useSelector(getItems);
+  const dispatch = useDispatch();
 
   const handleInputChange = (e) => {
     const data = e.currentTarget.value;
@@ -24,8 +27,13 @@ function PhoneForm({ addContact }) {
 
   const addToContactsList = (e) => {
     e.preventDefault();
-    const data = { id: `${uuidv4()}`, name, number };
-    addContact(data);
+    const data = { name, number };
+    const isInList = state.find((item) => item.number === data.number);
+    if (isInList) {
+      alert(`${data.name} is already in contacts`);
+      return;
+    }
+    dispatch(fetchAddContactToDb(data));
     resetForm();
   };
 
@@ -68,7 +76,5 @@ function PhoneForm({ addContact }) {
     </form>
   );
 }
-const mapDispatchToProps = (dispatch) => ({
-  addContact: (data) => dispatch(addToContacts(data)),
-});
-export default connect(null, mapDispatchToProps)(PhoneForm);
+
+export default PhoneForm;
